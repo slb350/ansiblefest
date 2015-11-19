@@ -1,0 +1,20 @@
+- name: Update current Symlink
+  file: "state=link path={{ current_path }} src={{ release_path }}"
+  sudo: yes
+  sudo_user: www-data
+
+- name: remove default site
+  file: dest=/etc/nginx/sites-enabled/default state=absent
+
+- name: update nginx conf
+  template: src=app.nginx.cnf dest=/etc/nginx/sites-enabled/{{ application }}
+  notify:
+    - restart nginx
+
+- name: update ownership
+  sudo: yes
+  file: path={{ release_path }} owner=www-data group=www-data mode=775 state=directory recurse=yes
+
+- name: Clean up releases
+  sudo: yes
+  shell: "cd /srv/{{ application}}/releases; ls -lt | tail -n +12 | awk '{print $9}' | xargs rm -rf"

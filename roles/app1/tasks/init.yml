@@ -1,0 +1,19 @@
+- name: Generate release timestamp
+  command: date +%Y%m%d%H%M%S
+  register: timestamp
+  run_once: true
+
+- set_fact: "release_path='/srv/{{ application }}/releases/{{ timestamp.stdout }}'"
+- set_fact: "shared_path='/srv/{{ application }}/shared'"
+- set_fact: "current_path='/srv/{{ application }}/current'"
+
+- name: Create application directories directory
+  file: path=/srv/{{ application }}/{{ item }} owner=www-data group=www-data mode=775 state=directory recurse=yes
+  with_items:
+    - shared/cached-copy
+    - shared/app/logs
+    - shared/data/uploads
+    - build/db-deploy
+
+- name: install nginx on api nodes
+  apt: pkg=nginx state=present update_cache=yes

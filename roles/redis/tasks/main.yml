@@ -1,0 +1,21 @@
+---
+- name: Get instance ec2 facts
+  action: ec2_facts
+  register: ec2_facts
+
+- include: redis-server.yml
+
+- name: register sanity check
+  shell: "redis-cli ping"
+  register: redis_sanity
+
+- fail: msg="Redis is not active"
+  when: redis_sanity.stdout != "PONG"
+
+- name: Add a tag
+  sudo: no
+  local_action: ec2_tag resource={{ec2_facts.ansible_facts.ansible_ec2_instance_id}} region='us-west-1' state=present
+  args:
+    tags:
+      Redis: 3.01
+      Installed: true

@@ -1,0 +1,91 @@
+---
+# tasks file for ruby
+
+- name: Include distribution specific variables
+  include_vars: "{{ ansible_distribution }}.yml"
+  tags: ruby
+
+- include: CentOS.yml
+  when: ansible_distribution == "CentOS"
+  tags: ruby
+
+- include: Ubuntu.yml
+  when: ansible_distribution == "Ubuntu"
+  tags: ruby
+
+- name: Create rbenv download directory
+  file: >
+    path={{ rbenv_install_dir }}
+    owner=root
+    group=root
+    mode=0755
+    state=directory
+  tags: ruby
+
+- name: Download rbenv
+  git: >
+    repo={{ rbenv_repo }}
+    dest={{ rbenv_install_dir }}
+    version=v{{ rbenv_version }}
+  tags: ruby
+
+- name: Download ruby-build plugin
+  git: >
+    repo={{ rbenv_rubybuild_repo }}
+    dest={{ rbenv_install_dir }}/plugins/ruby-build
+    version=v{{ rbenv_rubybuild_version }}
+  tags: ruby
+
+- name: Create rbenv shims directory
+  file: >
+    path={{ rbenv_install_dir }}/shims
+    owner=root
+    group=root
+    mode=0755
+    state=directory
+  tags: ruby
+
+- name: Create rbenv versions directory
+  file: >
+    path={{ rbenv_install_dir }}/versions
+    owner=root
+    group=root
+    mode=0755
+    state=directory
+  tags: ruby
+
+- name: Add rbenv to global shell profile
+  template: >
+    src=rbenv.sh.j2
+    dest=/etc/profile.d/rbenv.sh
+    owner=root
+    group=root
+    mode=0644
+  tags: ruby
+
+- name: Install Ruby
+  shell: rbenv install {{ ruby_version }}
+  environment:
+    PATH: "{{ rbenv_install_dir }}/bin:{{ ansible_env.PATH }}"
+    RBENV_ROOT: "{{ rbenv_install_dir }}"
+  args:
+    creates: "{{ rbenv_install_dir }}/versions/{{ ruby_version }}/bin/ruby"
+  tags: ruby
+
+- name: Get current default Ruby
+  shell: rbenv global
+  environment:
+    PATH: "{{ rbenv_install_dir }}/bin:{{ ansible_env.PATH }}"
+    RBENV_ROOT: "{{ rbenv_install_dir }}"
+  register: default_ruby
+  ignore_errors: true
+  changed_when: false
+  tags: ruby
+
+- name: Set default Ruby
+  shell: rbenv global {{ ruby_version }}
+  environment:
+    PATH: "{{ rbenv_install_dir }}/bin:{{ ansible_env.PATH }}"
+    RBENV_ROOT: "{{ rbenv_install_dir }}"
+  when: default_ruby.stdout != "{{ ruby_version }}"
+  tags: ruby

@@ -1,0 +1,7 @@
+---
+# vars file for golang (Ubuntu specific)
+
+golang_godeb_url: https://godeb.s3.amazonaws.com/godeb-amd64.tar.gz
+golang_godeb_sha256sum: b3d6b16a9a96e511014f6020f06df7881835cc10458b600269aad5fd024544c5
+golang_godeb_download_dir: /root
+golang_godeb_install_dir: /opt/godeb

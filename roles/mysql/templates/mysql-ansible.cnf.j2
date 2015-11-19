@@ -1,0 +1,80 @@
+# For advice on how to change settings please see
+# http://dev.mysql.com/doc/refman/5.6/en/server-configuration-defaults.html
+
+[mysqld]
+
+# --- GENERAL SERVER PARAMS ---
+user                            = mysql
+bind-address                    = *
+port                            = 3306
+sql_mode                        = NO_ENGINE_SUBSTITUTION		# Raise errors instead of warnings for bad SQL.
+skip-name-resolve               = 1                             # Disable DNS lookups for client connections. Grant tables must use IP addresses.
+socket                          = /var/run/mysqld/mysqld.sock	# Location of the socket file.
+datadir                         = /var/lib/mysql                  # Location of the data directory.
+pid-file                        = /var/run/mysqld/mysqld.pid
+basedir                         = /usr
+tmpdir                          = /tmp
+lc-messages-dir                 = /usr/share/mysql
+skip-external-locking
+
+
+# --- PERFORMANCE RELATED ---
+innodb_flush_log_at_trx_commit  = 1			# When should the log be flushed to disk (1 = after every transaction).
+innodb_flush_method             = O_DIRECT	# Should improve performance when using hardware RAID cards.
+innodb_buffer_pool_size         = {{ mysql_innodb_buffer_pool }}		# Should be 70% of available RAM on a dedicated box.
+innodb_log_buffer_size          = 64M		# Default is 8M, but a larger value allows for larger transactions before writing to disk is required.
+innodb_log_file_size            = 256M
+innodb_read_io_threads          = 16		# Default is 4. Helps when you have more DBs
+innodb_write_io_threads         = 16    	# Default is 4. Helps when you have more DBs
+max_allowed_packet              = 16M		# The default as of 5.6.6 is 4Meg.
+sync_binlog                     = 1			# Sync the log files after every transaction group. Safest. (slower, unless the server has battery backed cache)
+max_connections                 = 500
+query_cache_type		= 1
+query_cache_limit               = 1M
+query_cache_size                = 16M
+log-error                       = /var/log/mysql/error.log
+slow-query-log                  = ON
+slow_query_log_file             = /var/log/mysql/mysql-slow.log
+long_query_time                 = 2
+log-queries-not-using-indexes   = OFF
+
+
+
+# --- REPLICATION RELATED ---
+log-bin                         = /var/lib/mysql/binary-logs/mysql-bin.log
+relay-log                       = /var/lib/mysql/relay-logs/mysql-relay.log
+
+server-id                       = {{ mysql_server_id }}   # Must be unique among all replicated nodes.
+binlog-format                   = ROW       		# New ROW based logging in 5.6.
+expire_logs_days                = 30 				# How many days before old bin logs are removed.
+max_binlog_size                 = 256M
+binlog-checksum                 = CRC32				# \
+master-verify-checksum          = 1             	#  | Enable replication checksum checks
+slave-sql-verify-checksum       = 1                 # /
+binlog-rows-query-log_events    = 1                 # Include info logs (like the original SQL statement) in the binary log. Helps troubleshooting.
+
+gtid-mode                       = ON				# Use GTIDs for more robust replication.
+log-slave-updates               = ON				# Slave will also log changes from a master. (Required when using gtid's)
+enforce-gtid-consistency        = ON				# Only allow transactionally safe logging. (Reccomended when using gtid's)
+
+master-info-repository          = TABLE				# Store master/slave info in transactional tables instead of files. (crash safe)
+relay-log-info-repository       = TABLE             # As above.
+sync-master-info                = 1					# Sync the above repo after every change (make sure no info is lost!)
+slave-parallel-workers          = 0                 # No of slave threads. (disabled because we only have a single DB)
+
+
+[mysqld_safe]
+log-error                       = /var/log/mysql/mysqld_error.log
+pid-file                        = /var/run/mysqld/mysqld.pid
+
+
+[mysqldump]
+quick
+quote-names
+max_allowed_packet              = 16M
+
+[mysql]
+#no-auto-rehash                                     # faster start of mysql but no tab completition
+
+[isamchk]
+key_buffer                      = 16M

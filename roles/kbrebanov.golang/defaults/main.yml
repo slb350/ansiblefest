@@ -1,0 +1,4 @@
+---
+# defaults file for golang
+
+golang_version: 1.4.2

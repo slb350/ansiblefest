@@ -1,0 +1,9 @@
+---
+
+  application: app2
+
+  application_git_url_base: git@github.com:slb350/ansiblefest-app2.git
+  application_git_url_team: slb350
+
+  deploy_user: www-data
+  deploy_group: www-data

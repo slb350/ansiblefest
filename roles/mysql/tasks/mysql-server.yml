@@ -1,0 +1,24 @@
+---
+- name: Install mysql software
+  apt: pkg={{ item }} state=present update_cache=yes
+  with_items:
+    - mysql-server-5.6
+    - mysql-client-5.6
+
+- name: copy config files into place
+  template: src=mysql-ansible.cnf.j2 dest=/etc/mysql/conf.d/mysql-ansible.cnf
+
+- name: Make sure required binary log and relay log locations exist
+  file: state=directory path=/var/lib/mysql/{{ item }} owner=mysql group=mysql mode=0770
+  with_items:
+      - binary-logs
+      - relay-logs
+
+- name: Configure master
+  script: configure_master.bash creates=/etc/sparkcentral/mysql_configured.flag
+
+- name: Make sure scripts directory exists
+  file: state=directory path=/root/mysql_scripts owner=root group=root mode=0700
+
+- name: Copy mysql client default config file
+  template: src=mysql_client.cnf dest=/root/mysql_client.cnf owner=root group=root mode=0600

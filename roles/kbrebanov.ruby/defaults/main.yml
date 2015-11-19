@@ -1,0 +1,4 @@
+---
+# defaults file for ruby
+
+ruby_version: 2.2.3

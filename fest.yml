@@ -1,0 +1,30 @@
+---
+- hosts: tag_Service_Redis
+  user: ubuntu
+  sudo: yes
+  roles:
+    - redis
+  tags: redis
+
+- hosts: tag_Service_MySQL
+  user: ubuntu
+  sudo: yes
+  roles:
+    - mysql
+  tags: mysql
+
+- hosts: tag_Service_API1
+  user: ubuntu
+  sudo: yes
+  roles:
+    - { role: kbrebanov.ruby }
+    - app1
+  tags: api1
+
+- hosts: tag_Service_API2
+  user: ubuntu
+  sudo: yes
+  roles:
+    - { role: kbrebanov.golang }
+    - app2
+  tags: api2

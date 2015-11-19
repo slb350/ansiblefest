@@ -1,0 +1,5 @@
+- name: ensure directories
+  file: "path={{ release_path }}/{{ item }} state=directory"
+  with_items:
+    - tmp
+    - public

@@ -1,0 +1,4 @@
+[client]
+user = ansible
+password = fest
+host = localhost

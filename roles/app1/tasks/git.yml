@@ -1,0 +1,17 @@
+- apt: pkg=git state=present update_cache=yes
+
+- name: fresh start
+  shell: "rm -rf /srv/{{ application }}/shared/cached-copy/{{ application }}/"
+
+- name: pull code
+  become_user: steve
+  git: repo={{ application_git_url_base }} dest=/tmp/{{ application }} accept_hostkey=yes
+
+- name: move the code to the cached dir
+  shell: "mv /tmp/{{ application }}/ {{ shared_path }}/cached-copy/"
+
+- name: Create release directory
+  file: "state=directory owner='{{ deploy_user }}' path='{{ release_path }}'"
+
+- name: copy the cached git copy
+  shell: "cp -r {{ shared_path }}/cached-copy/{{ application }}/. {{ release_path }}"

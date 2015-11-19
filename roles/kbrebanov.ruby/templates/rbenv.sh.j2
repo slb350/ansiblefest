@@ -1,0 +1,14 @@
+# {{ ansible_managed }}
+
+# Prefer a user rbenv over a system wide install
+if [ -s "${HOME}/.rbenv/bin" ]; then
+    rbenv_root="${HOME}/.rbenv"
+else
+    rbenv_root={{ rbenv_install_dir }}
+fi
+
+export RBENV_ROOT="${rbenv_root}"
+if [ -n "${rbenv_root}" ]; then
+    export PATH="${rbenv_root}/bin:$PATH"
+    eval "$(rbenv init -)"
+fi

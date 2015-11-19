@@ -1,0 +1,4 @@
+---
+# MySQL
+mysql_innodb_buffer_pool: "256MB"
+mysql_server_id: "99"

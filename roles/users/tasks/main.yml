@@ -1,0 +1,19 @@
+---
+# User management
+
+- name: Make Sure devops group exists
+  group: name=devops state=present
+
+- name: Allow devops group to sudo without password
+  copy: content="%devops ALL=(ALL) NOPASSWD:ALL" dest=/etc/sudoers.d/10-devops owner=root group=root mode=0440
+
+- name: Add devops user accounts
+  user: name={{ item.username }} comment="{{ item.displayname }}" group=www-data groups=devops shell="/bin/bash" state={{ item.state }} remove=yes force=yes
+  with_items: devopsusers
+
+- name: Add devops user ssh keys
+  authorized_key: user={{ item.0.username }} key="{{ item.1 }}"
+  with_subelements:
+    - devopsusers
+    - authorized
+  when: item.0.state == "present"

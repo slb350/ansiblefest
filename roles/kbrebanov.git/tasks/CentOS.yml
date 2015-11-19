@@ -1,0 +1,7 @@
+---
+# tasks file for git (CentOS specific)
+
+- name: Install git packages
+  yum: name={{ item }} state=present
+  with_items: git_packages
+  tags: git

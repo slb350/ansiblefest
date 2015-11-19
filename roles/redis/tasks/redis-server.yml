@@ -1,0 +1,36 @@
+---
+- name: Install dependencies
+  apt: pkg={{ item }} state=present update_cache=yes
+  with_items:
+    - build-essential
+
+- name: make sure required directories exist
+  file: state=directory owner=root group=root mode=0755 path={{ item }}
+  with_items:
+    - /etc/redis
+    - /var/lib/redis/default
+    - /var/log/redis
+
+- name: Build from source
+  script: install_from_source.bash creates=/usr/local/bin/redis-server
+    - redis-server
+
+- name: Copy original config files
+  copy: dest=/etc/redis/{{ item }} src=config/{{ item }} owner=root group=root mode=0644
+  with_items:
+    - original_redis.conf
+
+- name: Create actual config files only if they dont exist
+  command: chdir=/etc/redis creates=/etc/redis/{{ item }} cp original_{{ item }} {{ item }}
+  with_items:
+    - redis.conf
+
+- name: Copy upstart scripts
+  copy: dest=/etc/init/{{ item }} src=init/{{ item }} owner=root group=root mode=0644
+  with_items:
+    - redis-server.conf
+
+- name: Start services
+  service: name={{ item }} state=started
+  with_items:
+    - redis-server

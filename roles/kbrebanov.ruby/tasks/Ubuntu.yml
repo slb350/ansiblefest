@@ -1,0 +1,7 @@
+---
+# tasks file for ruby (Ubuntu specific)
+
+- name: Install Ruby dependencies
+  apt: name={{ item }} state=present update_cache=yes
+  with_items: ruby_packages
+  tags: ruby

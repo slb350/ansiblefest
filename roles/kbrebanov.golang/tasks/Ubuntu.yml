@@ -1,0 +1,41 @@
+---
+# tasks file for golang (Ubuntu specific)
+
+- name: Download godeb
+  get_url: >
+    url={{ golang_godeb_url }}
+    dest={{ golang_godeb_download_dir }}/godeb.tar.gz
+    sha256sum={{ golang_godeb_sha256sum }}
+  tags: golang
+
+- name: Create godeb installation directory
+  file: >
+    path={{ golang_godeb_install_dir }}
+    owner=root
+    group=root
+    mode=0755
+    state=directory
+  tags: golang
+
+- name: Unarchive godeb to installation directory
+  unarchive: >
+    src={{ golang_godeb_download_dir }}/godeb.tar.gz
+    dest={{ golang_godeb_install_dir }}
+    owner=root
+    group=root
+    mode=0755
+    copy=no
+    creates={{ golang_godeb_install_dir }}/godeb
+  tags: golang
+
+- name: Check if Go is installed and get version
+  shell: /usr/bin/go version | cut -d ' ' -f3
+  register: version
+  ignore_errors: true
+  changed_when: false
+  tags: golang
+
+- name: Install Go
+  command: "{{ golang_godeb_install_dir }}/godeb install {{ golang_version }}"
+  when: version.stdout != "go{{ golang_version }}"
+  tags: golang
