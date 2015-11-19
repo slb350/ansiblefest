@@ -1,0 +1,10 @@
+---
+- name: db migrate
+  become_user: www-data
+  shell: "cd /srv/{{ team }}/{{ application }}/{{ release_path }}; bin/ddd db:migrate"
+  when: migrate == "true"
+  run_once: true
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/opt/kafka/bin"
+    DOMAIN_ENVIRONMENT: {{ environment }}
+

@@ -1,0 +1,43 @@
+---
+# credit - http://radify.io/blog/painless-immutable-infrastructure-with-ansible-and-aws/
+
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    instance_type: 't2.micro'
+    region: 'us-west-1'
+    aws_zone: 'a'
+  tasks:
+  - name: Launch instance (Ubuntu 14.04 hvm)
+    ec2: image='ami-9eaa1cf6'
+         instance_type="{{ instance_type }}"
+         keypair='myapp'
+         instance_tags='{"Environment":"myapp","Class":"myapp-immutable","Name":"myapp (immutable)"}'
+         region='{{region}}'
+         aws_zone='{{ region }}{{ aws_zone }}'
+         group='sg_myapp'
+         wait=true
+    register: ec2_info
+
+  - add_host: hostname={{ item.public_ip }} groupname="myapp,ec2hosts"
+    with_items: ec2_info.instances
+
+  - name: Wait for instances to listen on port 22
+    wait_for:
+      state=started
+      host={{ item.public_dns_name }}
+      port=22
+    with_items: ec2_info.instances
+
+- hosts: ec2hosts
+  tasks:
+  - name: Gather ec2 facts
+    ec2_facts:
+  - name: Add newly created instance to elb
+    local_action:
+        module: ec2_elb
+        region: 'us-west-1'
+        instance_id: "{{ ansible_ec2_instance_id }}"
+        ec2_elbs: "lb-myapp"
+        state: present
